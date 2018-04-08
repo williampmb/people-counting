@@ -13,6 +13,7 @@ class Blob:
         self.y = y
         self.w = w
         self.h = h
+        self.area = w*h
 
         self.centerX = (x + x + w) / 2;
         self.centerY = (y + y + h) / 2;
@@ -28,7 +29,17 @@ class Blob:
         return self.__contour
 
     def __str__(self):
-        return "x: " + str(self.x)
+        return ("(x,y): " + str(self.x)+","+str(self.y) + " (width,height): " + str(self.w) +"," +str(self.h)+
+            " area: " + str(self.w*self.h)
+            )
 
     def isPerson(self):
+        print(self)
+        if (self.area > 2000 and
+                self.dblAspectRatio >= 0.2 and
+                self.dblAspectRatio <= 1.2 and
+                self.w > 15 and
+                self.h> 20 and
+                self.dblDiagonalSize > 30.0):
+            return True
         return True

@@ -9,6 +9,7 @@ import copy
 from Blob import Blob
 
 def main():
+
     count =1
     video = cv2.VideoCapture("../videos_people/768x576.avi")
 
@@ -88,7 +89,6 @@ def main():
         imgFrame2Copy = copy.deepcopy(imgFrame2)
 
         for blob in blobs:
-            print(blob)
             cv2.rectangle(imgFrame2Copy, (blob.x, blob.y), (blob.x + blob.w, blob.y + blob.h), (0,255,255), 2)
             cv2.circle(imgFrame2Copy, (blob.centerX, blob.centerY), 3, (255,255,0), -1)
 
@@ -106,7 +106,7 @@ def main():
 
         count+=1
         print("frame: " +  str(count))
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey() & 0xFF == ord('q'):
             break
 
     video.release()
