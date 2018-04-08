@@ -6,3 +6,9 @@ class Point:
 
     def __str__(self):
         return (str(self.x)+ " " + str(self.y))
+
+    @staticmethod
+    def distanceBetweenPoints():
+        #TODO
+        print("distanceBetweenPoints")
+        return 0

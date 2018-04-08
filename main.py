@@ -8,9 +8,11 @@ import numpy as np
 import copy
 from Blob import Blob
 
+
+
 def main():
 
-    count =1
+    atFrame = 1
     video = cv2.VideoCapture("../videos_people/768x576.avi")
 
     if not video.isOpened():
@@ -104,8 +106,8 @@ def main():
             print("end of video")
             break;
 
-        count+=1
-        print("frame: " +  str(count))
+        atFrame +=1
+        #print("frame: " +  str(count))
         if cv2.waitKey() & 0xFF == ord('q'):
             break
 
