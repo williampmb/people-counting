@@ -2,33 +2,72 @@ from Point import Point
 import cv2
 import numpy as np
 
-mousePosition = Point(0,0)
+mouse = Point(0,0)
 
 def predictNextPosition(positions):
 
     predictNextPosition = Point(0,0)
-    deltaX = 0.0
-    deltaY = 0.0
-    samples = 0.0
     lengthPos = len(positions)
-    lengthPos2 = lengthPos
 
     if( lengthPos ==0 ):
         print("Erro: There is no position")
     elif ( lengthPos == 1):
         return positions[0]
     elif (lengthPos == 2):
-        deltaX += (positions[1].x - positions[0].x)
-        deltaY += (positions[1].y - positions[0].y)
+        deltaX = (positions[1].x - positions[0].x)
+        deltaY = (positions[1].y - positions[0].y)
 
         predictNextPosition.x = positions[-1].x + deltaX
         predictNextPosition.y = positions[-1].y + deltaY
 
         return predictNextPosition
+    elif lengthPos == 3:
+        sumChangesX = (positions[2].x - positions[1].x)*2 + (positions[1].x - positions[0].x)*1
+        sumChangesY = (positions[2].y - positions[1].y)*2 + (positions[1].y - positions[0].y)*1
+
+        deltaX = int(round(float(sumChangesX)/3.0))
+        deltaY = int(round(float(sumChangesY)/3.0))
+
+        predictNextPosition.x = positions[-1].x + deltaX
+        predictNextPosition.y = positions[-1].y + deltaY
+
+    elif lengthPos == 4:
+
+        sumChangesX = ((positions[3].x - positions[2].x)*3
+                    + (positions[2].x - positions[1].x)*2
+                    + (positions[1].x - positions[0].x)*1 )
+        sumChangesY =  ((positions[3].y - positions[2].y)*3
+                    + (positions[2].y - positions[1].y)*2
+                    + (positions[1].y - positions[0].y)*1)
+
+        deltaX = int(round(float(sumChangesX)/6.0))
+        deltaY = int(round(float(sumChangesY)/6.0))
+
+        predictNextPosition.x = positions[-1].x + deltaX
+        predictNextPosition.y = positions[-1].y + deltaY
 
     elif lengthPos >= 5:
-        lengthPos = 5
 
+        sumChangesX = ((positions[lengthPos-1].x - positions[lengthPos-2].x)*4
+                    + (positions[lengthPos-2].x - positions[lengthPos-3].x)*3
+                    + (positions[lengthPos-3].x - positions[lengthPos-4].x)*2
+                    + (positions[lengthPos-4].x - positions[lengthPos-5].x)*1)
+
+        sumChangesY = ((positions[lengthPos-1].y - positions[lengthPos-2].y)*4
+                    + (positions[lengthPos-2].y - positions[lengthPos-3].y)*3
+                    + (positions[lengthPos-3].y - positions[lengthPos-4].y)*2
+                    + (positions[lengthPos-4].y - positions[lengthPos-5].y)*1)
+
+
+        deltaX = int(round(float(sumChangesX)/10.0))
+        deltaY = int(round(float(sumChangesY)/10.0))
+
+        predictNextPosition.x = positions[-1].x + deltaX
+        predictNextPosition.y = positions[-1].y + deltaY
+
+    return predictNextPosition
+
+'''
     iteration = 1
     for p in positions: print p
     #TO FIX
@@ -43,13 +82,14 @@ def predictNextPosition(positions):
 
     predictNextPosition.x = positions[-1].x + deltaX
     predictNextPosition.y = positions[-1].y + deltaY
+'''
 
-    return predictNextPosition
+
 
 def onMouse(event, x, y, flags, userData):
     if( event == cv2.EVENT_MOUSEMOVE):
-        mousePosition.x = x
-        mousePosition.y = y
+        mouse.x = x
+        mouse.y = y
 
 
 # mouse callback function
@@ -65,6 +105,8 @@ def main():
     mousePositions = []
 
     while(True):
+
+        mousePosition = Point(mouse.x, mouse.y)
         mousePositions.append(mousePosition)
 
         predictedMousePosition = predictNextPosition(mousePositions)
@@ -75,7 +117,7 @@ def main():
 
 
         drawCross(img, mousePositions[-1], (255,0,0))
-        #drawCross(img, predictedMousePosition, (0,255,255))
+        drawCross(img, predictedMousePosition, (0,255,255))
 
         cv2.imshow('predictMousePosition',img)
 
