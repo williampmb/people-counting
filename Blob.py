@@ -3,10 +3,14 @@ import cv2
 from Point import Point
 
 class Blob:
-    #centerPositions = []
+    id = 0
+    @staticmethod
+    def setId(blob):
+        Blob.id +=1
+        blob.id = Blob.id
 
     def __init__(self, contour):
-
+        self.id = -1
         self.contour = contour
         self.set_bounding_rect(contour)
 
@@ -112,12 +116,23 @@ class Blob:
         return predictedNextPosition
 
     def isPerson(self):
-        print(self)
         if (self.area > 1000 and
                 self.aspectRatio >= 0.2 and
                 self.aspectRatio <= 1.2 and
                 self.width > 15 and
                 self.height> 20 and
                 self.diagonalSize > 30.0):
+            return True
+        return False
+
+    def isCar(self):
+        if (self.area > 400 and
+                self.aspectRatio >= 0.2 and
+                self.aspectRatio <= 4.2 and
+                self.width  > 30 and
+                self.height > 30 and
+                self.diagonalSize > 60.0 and
+                cv2.contourArea(self.contour)/float(self.area) > 0.5
+                ):
             return True
         return False
