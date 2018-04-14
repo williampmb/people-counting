@@ -1,0 +1,26 @@
+config:
+  debug_mode: True
+
+videos:
+  video_1:
+    id: 1
+    filepath: videos_people/CarsDrivingUnderBridge.mp4
+    blob:
+      area: 400
+      min_aspect_ratio: 0.2
+      max_aspect_ratio: 4.2
+      width: 30
+      height: 30
+      diagonal_size: 60.0
+      contour_area_by_area: 0.5
+  video_2:
+    id: 2
+    filepath: videos_people/CarsDrivingUnderBridge.mp4
+    blob:
+      area: 400
+      min_aspect_ratio: 0.2
+      max_aspect_ratio: 4.2
+      width: 30
+      height: 30
+      diagonal_size: 60.0
+      contour_area_by_area: 0.5

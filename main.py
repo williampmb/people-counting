@@ -6,6 +6,8 @@ import math
 import cv2
 import numpy as np
 import copy
+import yaml
+
 from Blob import Blob
 from Point import Point
 
@@ -15,10 +17,50 @@ kernel7x7 = np.ones((7,7), np.uint8)
 kernel9x9 = np.ones((9,9), np.uint8)
 kernel15x15 = np.ones((15,15), np.uint8)
 
-debug = False
+#load from config.yaml
+debug_mode = None
 debugGaussian = False
 debugThreshold = True
 debugDilateErode = True
+
+videopath = ""
+
+#load from config.yaml based on id
+video_id = 1
+
+
+def yaml_loader(filepath):
+    # Loads a yaml file
+    with open(filepath,"r") as file_descriptor:
+        data = yaml.load(file_descriptor)
+    return data
+
+def load_config(filepath):
+    #filepath = "config.yaml"
+    data = yaml_loader(filepath)
+
+    #load config
+    config = data.get('config')
+    global debug_mode
+    debug_mode = config.get('debug_mode')
+
+    #load video and blobs features
+    videos = data.get('videos')
+    global video_id
+    video_name = "video_"+str(video_id)
+    video_config = videos.get(video_name)
+
+    global videopath
+    videopath = video_config.get('filepath')
+    blob_config = video_config.get('blob')
+
+    Blob.conf_area = blob_config.get('area')
+    Blob.conf_min_aspect_ratio = blob_config.get('min_aspect_ratio')
+    Blob.conf_max_aspect_ratio = blob_config.get('max_aspect_ratio')
+    Blob.conf_width = blob_config.get('width')
+    Blob.conf_height = blob_config.get('height')
+    Blob.conf_diagonal_size = blob_config.get('diagonal_size')
+    Blob.conf_contour_area_by_area = blob_config.get('contour_area_by_area')
 
 def matchCurrentFrameBlobsToExistingBlobs(blobs, currentBlobs):
     for existingBlob in blobs:
@@ -131,7 +173,10 @@ def drawCarCounterOnImage(carCount, img, width, height):
 
 
 def main():
-    video = cv2.VideoCapture("../videos_people/CarsDrivingUnderBridge.mp4")
+    global videopath
+    filepath = "../"+videopath
+    print(filepath)
+    video = cv2.VideoCapture("../"+videopath)
 
     width = video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float video.get(3)
     height = video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float video.get(4)
@@ -223,7 +268,7 @@ def main():
         for x in contours:
             convexHull = cv2.convexHull(x)
             blob = Blob(convexHull)
-            if(blob.isCar()):
+            if(blob.isObject()):
                 currentBlobs.append(blob)
 
         drawAndShowBlobs(imgThresh, currentBlobs, "imgCurrentBlobs")
@@ -279,7 +324,7 @@ def main():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        if debug and cv2.waitKey() & 0xFF == ord('q'):
+        if debug_mode and cv2.waitKey() & 0xFF == ord('q'):
             break
 
     video.release()
@@ -289,4 +334,6 @@ def main():
 
 
 if __name__ == "__main__":
+    config_path = "config.yaml"
+    load_config(config_path)
     main()

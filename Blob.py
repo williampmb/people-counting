@@ -4,6 +4,15 @@ from Point import Point
 
 class Blob:
     id = 0
+    conf_area = 0
+    conf_min_aspect_ratio = 0
+    conf_max_aspect_ratio = 0
+    conf_width = 0
+    conf_height = 0
+    conf_diagonal_size = 0
+    conf_contour_area_by_area = 0
+
+
     @staticmethod
     def getId():
         Blob.id +=1
@@ -138,6 +147,18 @@ class Blob:
                 self.height > 30 and
                 self.diagonalSize > 60.0 and
                 cv2.contourArea(self.contour)/float(self.area) > 0.5
+                ):
+            return True
+        return False
+
+    def isObject(self):
+        if (self.area > Blob.conf_area and
+                self.aspectRatio >= Blob.conf_min_aspect_ratio and
+                self.aspectRatio <= Blob.conf_max_aspect_ratio and
+                self.width  > Blob.conf_width and
+                self.height > Blob.conf_height and
+                self.diagonalSize > Blob.conf_diagonal_size and
+                cv2.contourArea(self.contour)/float(self.area) > Blob.conf_contour_area_by_area
                 ):
             return True
         return False
