@@ -39,7 +39,6 @@ def matchCurrentFrameBlobsToExistingBlobs(blobs, currentBlobs):
         if leastDistance < curBlob.diagonalSize*1.15 :
             addBlobToExistingBlobs(curBlob, blobs, indexOfLeastDistance)
         else:
-            Blob.setId(curBlob)
             addNewBlob(curBlob, blobs)
 
     for existingBlob in blobs :
@@ -62,6 +61,7 @@ def addBlobToExistingBlobs(curBlob, blobs, index):
 
 
 def addNewBlob(curBlob, blobs):
+    curBlob.id = Blob.getId()
     curBlob.isMatchFoundOrNewBlob = True
     blobs.append(curBlob)
 
@@ -106,8 +106,10 @@ def checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, carCount):
             prevFrameIndex = len(b.centerPositions) - 2
             curFrameIndex = len(b.centerPositions) - 1
             if(b.centerPositions[prevFrameIndex].y > horizontalLinePosition and b.centerPositions[curFrameIndex].y <=horizontalLinePosition):
-                print("crossed")
-                carCount[0] = +1
+                print(str(b))
+                print(str(b.centerPositions[prevFrameIndex].y) + ">"+ str(horizontalLinePosition) + ">=" + str(b.centerPositions[curFrameIndex].y))
+                print (str(b.id) + " have crossed the line")
+                carCount[0] += 1
                 atLeastOneBlobCrossedTheLine = True
 
     return atLeastOneBlobCrossedTheLine
@@ -140,21 +142,28 @@ def main():
 
     #Maybe we should check if the video has at least 2 frames
 
+    #Read the first and second frame of the video to start doing processing on them
     _, imgFrame1 = video.read()
     _, imgFrame2 = video.read()
 
+    #start framecount as 2 because we just read 2 frames
     atFrame = 2
+    #up to this point we have none blobs yet
     blobs = []
 
+    #set the positon of the horizontalLinePosition line at 35% of the screen
     horizontalLinePosition = int(round(float(height*0.35)))
+    #points of the line to draw
     point1 = Point(0,horizontalLinePosition)
     point2 = Point(int(width-1), horizontalLinePosition)
 
+    # To count cars and pass it as a parameter. It doens't work with primitive variables (int)
     carCount = [0]
 
     #While the video is open and we don't press q key read, process and show a frame
     while(video.isOpened()):
 
+        #for every frame, check how many blobs are in the screen
         currentBlobs = []
 
         imgFrame1Copy = copy.deepcopy(imgFrame1)
@@ -187,7 +196,6 @@ def main():
 
         #all the pixels near boundary will be discarded depending upon the size of kernel. erosion removes white noises
 
-
         imgThresh = cv2.erode(imgThresh, kernel3x3, iterations=1)
         imgThresh = cv2.dilate(imgThresh, kernel5x5, iterations=2)
         if debugDilateErode:
@@ -199,7 +207,6 @@ def main():
         if debugDilateErode:
             cv2.imshow('dilate-erode15x15', imgThresh)
 
-
         imgThreshCopy = copy.deepcopy(imgThresh)
 
         # Contours can be explained simply as a curve joining all the continuous points (along the boundary),
@@ -210,6 +217,9 @@ def main():
 
         drawAndShowContours(imgThreshCopy, contours, 'imgContours')
 
+        #up here we made all processing image stuff and now we need to work with the info we extrated from the image
+
+        #for every thing it's identified on the screen, check if it is a car
         for x in contours:
             convexHull = cv2.convexHull(x)
             blob = Blob(convexHull)
@@ -219,9 +229,12 @@ def main():
         drawAndShowBlobs(imgThresh, currentBlobs, "imgCurrentBlobs")
 
         if atFrame <= 2 :
+            #if it is first iteration there is no comparison, add curBlos to blobs
             for curBlob in currentBlobs:
+                curBlob.id = Blob.getId()
                 blobs.append(curBlob)
         else:
+            #otherwise check if the curblob is releated to a previous blob and match them
             matchCurrentFrameBlobsToExistingBlobs(blobs, currentBlobs)
 
         drawAndShowBlobs(imgThresh, blobs, "imgBlobs")

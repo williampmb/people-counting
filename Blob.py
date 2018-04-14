@@ -5,9 +5,9 @@ from Point import Point
 class Blob:
     id = 0
     @staticmethod
-    def setId(blob):
+    def getId():
         Blob.id +=1
-        blob.id = Blob.id
+        return Blob.id
 
     def __init__(self, contour):
         self.id = -1
@@ -15,8 +15,8 @@ class Blob:
         self.set_bounding_rect(contour)
 
         self.area = self.width*self.height
-        self.center = Point((self.position.x + self.position.x + self.width/2),
-                            (self.position.y + self.position.y + self.height/2))
+        self.center = Point(((self.position.x + self.position.x + self.width)/2),
+                            ((self.position.y + self.position.y + self.height)/2))
 
         curCenter = Point(self.center.x, self.center.y)
 
@@ -48,9 +48,14 @@ class Blob:
         return self.contour
 
     def __str__(self):
-        return ("(x,y): " + str(self.position.x)+","+str(self.position.y) + "           (width,height): " + str(self.width) +"," +str(self.height)+
-            "               area: " + str(self.area) + "                   dblAspectRatio:" + str(self.aspectRatio) +
-            "                         dblDiagonalSize: " + str(self.diagonalSize)
+        return (" id: " + str(self.id) +
+            "(x,y): " + str(self.position.x)+","+str(self.position.y) +
+            "    (width,height): " + str(self.width) +"," +str(self.height)+
+            "    area: " + str(self.area) +
+            "    AspectRatio:" + str(self.aspectRatio) +
+            "    DiagonalSize: " + str(self.diagonalSize) +
+            "    area(contour)/area " + str(cv2.contourArea(self.contour))+ "/" + str(self.area) + "= " + str(cv2.contourArea(self.contour)/float(self.area))+
+            "    centerPositions: " + ' '.join(str(e.x)+","+str(e.y) for e in self.centerPositions)
             )
 
     def predictNextPosition(self):
