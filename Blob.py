@@ -57,14 +57,23 @@ class Blob:
         return self.contour
 
     def __str__(self):
+        times =0
+        if len(self.centerPositions)>=5:
+            times =5
+        else:
+            times = len(self.centerPositions)-1
         return (" id: " + str(self.id) +
-            "(x,y): " + str(self.position.x)+","+str(self.position.y) +
-            "    (width,height): " + str(self.width) +"," +str(self.height)+
-            "    area: " + str(self.area) +
-            "    AspectRatio:" + str(self.aspectRatio) +
-            "    DiagonalSize: " + str(self.diagonalSize) +
-            "    area(contour)/area " + str(cv2.contourArea(self.contour))+ "/" + str(self.area) + "= " + str(cv2.contourArea(self.contour)/float(self.area))+
-            "    centerPositions: " + ' '.join(str(e.x)+","+str(e.y) for e in self.centerPositions)
+            " (x,y):" + str(self.position.x)+","+str(self.position.y) +
+            "    (w,h):" + str(self.width) +"," +str(self.height)+
+            "    area:" + str(self.area) +
+            "    AS:" + str("%.2f" % self.aspectRatio) +
+            "    DS: " + str("%.2f" % self.diagonalSize) +
+            #"    area(contour)/area " + str(cv2.contourArea(self.contour))+ "/" + str(self.area) + "= " + str("%.2f" % (cv2.contourArea(self.contour)/float(self.area)))+
+            "    area(contour)/area=" + str("%.2f" % (cv2.contourArea(self.contour)/float(self.area)))+
+            #"    center: " + ' '.join(str(e.x)+","+str(e.y) for e in self.centerPositions) +
+            "    center: " + ' '.join(str(self.centerPositions[-i].x)+","+str(self.centerPositions[-i].y) for i in range(times)) +
+            "    tracked: " + str(self.isStillBeingTracked) +
+            "    w/tmatch: " + str(self.numbOfConsecutiveFramesWithoutAMatch)
             )
 
     def predictNextPosition(self):

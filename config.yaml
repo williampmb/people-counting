@@ -1,5 +1,12 @@
 config:
   debug_mode: True
+  debugGaussian: False
+  debugThreshold: True
+  debugDilateErode: True
+  debug_dilate: True
+  debug_erode: True
+  debug_crossed_blobs: True
+  debug_all_current_blobs: True
 
 videos:
   video_1:
@@ -13,9 +20,17 @@ videos:
       height: 30
       diagonal_size: 60.0
       contour_area_by_area: 0.5
+    kernel_erode1: 3x3
+    times_erode1: 1
+    kernel_dilate1: 5x5
+    times_dilate1: 2
+    kernel_erode2: 15x15
+    times_erode1: 1
+    kernel_dilate2: 15x15
+    times_dilate2: 1
   video_2:
     id: 2
-    filepath: videos_people/CarsDrivingUnderBridge.mp4
+    filepath: videos_people/Flora_Exposition_normal_320x240.avi
     blob:
       area: 400
       min_aspect_ratio: 0.2
@@ -24,3 +39,11 @@ videos:
       height: 30
       diagonal_size: 60.0
       contour_area_by_area: 0.5
+    kernel_erode1: 3x3
+    times_erode1: 1
+    kernel_dilate1: 5x5
+    times_dilate1: 2
+    kernel_erode2: 15x15
+    times_erode1: 1
+    kernel_dilate2: 15x15
+    times_dilate2: 1
