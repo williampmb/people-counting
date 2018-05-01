@@ -158,7 +158,7 @@ def drawBlobInfoOnImage(blobs, img):
 
             cv2.putText(img, str(blobs[i].id), posTuple, fontFace, fontScale, (0,0,255), fontThickness)
 
-def checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, carCount, seenPeople):
+def checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, peopleCount, seenPeople):
     atLeastOneBlobCrossedTheLine = False
 
     for b in blobs:
@@ -174,18 +174,18 @@ def checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, carCount, seenPeopl
                         print(str(b))
                         print(str(b.centerPositions[prevFrameIndex].y) + ">"+ str(horizontalLinePosition) + ">=" + str(b.centerPositions[curFrameIndex].y))
                         print (str(b.id) + " have crossed the line")
-                    carCount[0] += 1
+                    peopleCount[0] += 1
                     atLeastOneBlobCrossedTheLine = True
 
     return atLeastOneBlobCrossedTheLine
 
-def drawCarCounterOnImage(carCount, img, width, height):
+def drawPeopleCounterOnImage(peopleCount, img, width, height):
     fontFace = cv2.FONT_HERSHEY_SIMPLEX
     #fontScale = float(width*height/450000.0)
     fontScale = float(width*height/450000.0)*5
     fontThickness = round(fontScale*0.9)
 
-    textSize,_ = cv2.getTextSize(str(carCount[0]), int(fontFace), fontScale, int(fontThickness))
+    textSize,_ = cv2.getTextSize(str(peopleCount[0]), int(fontFace), fontScale, int(fontThickness))
 
     w = textSize[0]
     h = textSize[1]
@@ -193,7 +193,7 @@ def drawCarCounterOnImage(carCount, img, width, height):
 
     textBottonLeftPositionY = int(float(h*1.25))
 
-    cv2.putText(img,str(carCount[0]), (textBottonLeftPositionX,textBottonLeftPositionY), fontFace, fontScale,(0,0,255), int(fontThickness))
+    cv2.putText(img,str(peopleCount[0]), (textBottonLeftPositionX,textBottonLeftPositionY), fontFace, fontScale,(0,0,255), int(fontThickness))
 
 
 def main():
@@ -218,14 +218,14 @@ def main():
     #up to this point we have none blobs yet
     blobs = []
 
-    #set the positon of the horizontalLinePosition line at 35% of the screen
+    #set the positon of the horizontalLinePosition line at 40% of the screen
     horizontalLinePosition = int(round(float(height*0.4)))
     #points of the line to draw
     point1 = Point(0,horizontalLinePosition)
     point2 = Point(int(width-1), horizontalLinePosition)
 
-    # To count cars and pass it as a parameter. It doens't work with primitive variables (int)
-    carCount = [0]
+    # To count people and pass it as a parameter. It doens't work with primitive variables (int)
+    peopleCount = [0]
     seenPeople = set()
 
 
@@ -314,7 +314,7 @@ def main():
 
         #up here we made all processing image stuff and now we need to work with the info we extrated from the image
 
-        #for every thing it's identified on the screen, check if it is a car
+        #for every thing it's identified on the screen, check if it is a people
         for x in contours:
             convexHull = cv2.convexHull(x)
             blob = Blob(convexHull)
@@ -344,7 +344,7 @@ def main():
         drawBlobInfoOnImage(blobs, imgFrame2Copy)
 
         #check if the blob crossed the explained
-        atLeastOneBlobCrossedTheLine = checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, carCount, seenPeople)
+        atLeastOneBlobCrossedTheLine = checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, peopleCount, seenPeople)
 
         #if it has cross draw a colorful line
         if atLeastOneBlobCrossedTheLine:
@@ -356,7 +356,7 @@ def main():
 
         #draw the counter
 
-        drawCarCounterOnImage(carCount, imgFrame2Copy, width, height)
+        drawPeopleCounterOnImage(peopleCount, imgFrame2Copy, width, height)
 
         cv2.imshow('imgFrame2Copy', imgFrame2Copy)
 
