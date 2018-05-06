@@ -23,7 +23,6 @@ class Blob:
         self.contour = contour
         self.set_bounding_rect(contour)
 
-        self.area = self.width*self.height
         self.center = Point(((self.position.x + self.position.x + self.width)/2),
                             ((self.position.y + self.position.y + self.height)/2))
 
@@ -32,11 +31,6 @@ class Blob:
         self.centerPositions = []
         self.centerPositions.append(curCenter)
         self.predictedNextPosition = self.predictNextPosition()
-
-        self.diagonalSize = math.sqrt(math.pow(self.width, 2) + math.pow(self.height, 2));
-
-        self.aspectRatio = float(self.width) / float(self.height);
-
         self.isStillBeingTracked = True
         self.isMatchFoundOrNewBlob = True
 
@@ -49,6 +43,9 @@ class Blob:
         self.position = Point(x,y)
         self.width = w
         self.height = h
+        self.area = self.width*self.height
+        self.diagonalSize = math.sqrt(math.pow(self.width, 2) + math.pow(self.height, 2));
+        self.aspectRatio = float(self.width) / float(self.height);
 
     def set_contour(self, contour):
         self.contour = contour
@@ -137,28 +134,6 @@ class Blob:
 
         self.predictedNextPosition = predictedNextPosition
         return predictedNextPosition
-
-    def isPerson(self):
-        if (self.area > 1000 and
-                self.aspectRatio >= 0.2 and
-                self.aspectRatio <= 1.2 and
-                self.width > 15 and
-                self.height> 20 and
-                self.diagonalSize > 30.0):
-            return True
-        return False
-
-    def isCar(self):
-        if (self.area > 400 and
-                self.aspectRatio >= 0.2 and
-                self.aspectRatio <= 4.2 and
-                self.width  > 30 and
-                self.height > 30 and
-                self.diagonalSize > 60.0 and
-                cv2.contourArea(self.contour)/float(self.area) > 0.5
-                ):
-            return True
-        return False
 
     def isObject(self):
         if (self.area > Blob.conf_area and

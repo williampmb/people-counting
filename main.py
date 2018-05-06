@@ -11,13 +11,8 @@ import yaml
 from Blob import Blob
 from Point import Point
 
-kernel3x3 = np.ones((3,3), np.uint8)
-kernel5x5 = np.ones((5,5), np.uint8)
-kernel7x7 = np.ones((7,7), np.uint8)
-kernel9x9 = np.ones((9,9), np.uint8)
-kernel15x15 = np.ones((15,15), np.uint8)
-
-max_track_frames = 15
+#load from config.yaml based on id
+video_id = 1
 
 #load from config.yaml
 debug_mode = None
@@ -28,11 +23,39 @@ debug_erode = None
 debug_crossed_blobs = None
 debug_all_current_blobs = None
 
+case = 0
 videopath = ""
+line = []
+max_track_frames = 15
 
-#load from config.yaml based on id
-video_id = 2
+gaussiankernel = 2
+threshold_value = 0
+kernel_dilate1 = None
+kernel_erode1 = None
+kernel_dilate2 = None
+kernel_erode2 = None
 
+def getKernel(numb):
+    if numb == 3:
+        return np.ones((3,3), np.uint8)
+    if numb == 5:
+        return np.ones((5,5), np.uint8)
+    if numb == 7:
+        return np.ones((7,7), np.uint8)
+    if numb == 9:
+        return np.ones((9,9), np.uint8)
+    if numb == 15:
+        return np.ones((15,15), np.uint8)
+
+def getTuple(numb):
+    if numb == 5:
+        return (5,5)
+    if numb == 3:
+        return (3,3)
+    if numb == 15:
+        return (15,15)
+    if numb == 9:
+        return (9,9)
 
 def yaml_loader(filepath):
     # Loads a yaml file
@@ -64,8 +87,17 @@ def load_config(filepath):
 
     global videopath
     videopath = video_config.get('filepath')
-    blob_config = video_config.get('blob')
 
+    global case, max_track_frames, line
+    max_track_frames = video_config.get('max_track_frames')
+    case = video_config.get('case')
+    point1Confg = video_config.get('linePoint1')
+    point2Confg = video_config.get('linePoint2')
+    point1 = Point(point1Confg.get('x'),point1Confg.get('y'))
+    point2 = Point(point2Confg.get('x'),point2Confg.get('y'))
+    line = [point1,point2]
+
+    blob_config = video_config.get('blob')
     Blob.conf_area = blob_config.get('area')
     Blob.conf_min_aspect_ratio = blob_config.get('min_aspect_ratio')
     Blob.conf_max_aspect_ratio = blob_config.get('max_aspect_ratio')
@@ -74,10 +106,14 @@ def load_config(filepath):
     Blob.conf_diagonal_size = blob_config.get('diagonal_size')
     Blob.conf_contour_area_by_area = blob_config.get('contour_area_by_area')
 
-    #Erode and Dilate config
-    #video_config.get('kernel_erode1')
-    #for now, set manually
+    global gaussian_kernel, threshold_value, kernel_dilate1, kernel_erode1, kernel_dilate2, kernel_erode2
+    gaussian_kernel = getTuple(video_config.get('gaussian_kernel'))
+    threshold_value = video_config.get('threshold_value')
 
+    kernel_dilate1 = getKernel(video_config.get('kernel_dilate1'))
+    kernel_erode1 = getKernel(video_config.get('kernel_erode1'))
+    kernel_dilate2 = getKernel(video_config.get('kernel_dilate2'))
+    kernel_erode2 =  getKernel(video_config.get('kernel_erode2'))
 
 def matchCurrentFrameBlobsToExistingBlobs(blobs, currentBlobs):
     for existingBlob in blobs:
@@ -158,24 +194,25 @@ def drawBlobInfoOnImage(blobs, img):
 
             cv2.putText(img, str(blobs[i].id), posTuple, fontFace, fontScale, (0,0,255), fontThickness)
 
-def checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, peopleCount, seenPeople):
+def checkIfBlobsCossedTheLine(blobs, line, peopleCount, seenPeople, case):
     atLeastOneBlobCrossedTheLine = False
 
     for b in blobs:
         if b.isStillBeingTracked and len(b.centerPositions) >=4 :
-            prevFrameIndex = len(b.centerPositions) - 4
-            curFrameIndex = len(b.centerPositions) - 1
-            blobMinY = b.centerPositions[prevFrameIndex].y
-            blobMaxY = b.centerPositions[curFrameIndex].y
-            if(blobMinY < horizontalLinePosition and blobMaxY >=horizontalLinePosition):
-                if not b.id in seenPeople:
-                    seenPeople.add(b.id)
-                    if debug_crossed_blobs:
-                        print(str(b))
-                        print(str(b.centerPositions[prevFrameIndex].y) + ">"+ str(horizontalLinePosition) + ">=" + str(b.centerPositions[curFrameIndex].y))
-                        print (str(b.id) + " have crossed the line")
-                    peopleCount[0] += 1
-                    atLeastOneBlobCrossedTheLine = True
+            if(case == 1):
+                prevFrameIndex = len(b.centerPositions) - 4
+                curFrameIndex = len(b.centerPositions) - 1
+                blobMinY = b.centerPositions[prevFrameIndex].y
+                blobMaxY = b.centerPositions[curFrameIndex].y
+                if(blobMinY < line[0].y and blobMaxY >= line[1].y):
+                    if not b.id in seenPeople:
+                        seenPeople.add(b.id)
+                        if debug_crossed_blobs:
+                            print(str(b))
+                            print(str(b.centerPositions[prevFrameIndex].y) + ">"+ str(line[1].y) + ">=" + str(b.centerPositions[curFrameIndex].y))
+                            print (str(b.id) + " have crossed the line")
+                        peopleCount[0] += 1
+                        atLeastOneBlobCrossedTheLine = True
 
     return atLeastOneBlobCrossedTheLine
 
@@ -197,8 +234,9 @@ def drawPeopleCounterOnImage(peopleCount, img, width, height):
 
 
 def main():
-    filepath = "../"+videopath
-    video = cv2.VideoCapture("../"+videopath)
+    filepath = videopath
+    print filepath
+    video = cv2.VideoCapture("./"+videopath)
 
     width = video.get(cv2.CAP_PROP_FRAME_WIDTH)   # float video.get(3)
     height = video.get(cv2.CAP_PROP_FRAME_HEIGHT) # float video.get(4)
@@ -218,20 +256,9 @@ def main():
     #up to this point we have none blobs yet
     blobs = []
 
-    #set the positon of the horizontalLinePosition line at 40% of the screen
-    horizontalLinePosition = int(round(float(height*0.4)))
-    #points of the line to draw
-    point1 = Point(0,horizontalLinePosition)
-    point2 = Point(int(width-1), horizontalLinePosition)
-
     # To count people and pass it as a parameter. It doens't work with primitive variables (int)
     peopleCount = [0]
     seenPeople = set()
-
-
-    #fgbg = cv2.createBackgroundSubtractorMOG2()
-    #fgbg = cv2.createBackgroundSubtractorMOG()
-    #fgbg = cv2.bgsegm.createBackgroundSubtractorGMG()
 
     #While the video is open and we don't press q key read, process and show a frame
     while(video.isOpened()):
@@ -242,60 +269,44 @@ def main():
         imgFrame1Copy = copy.deepcopy(imgFrame1)
         imgFrame2Copy = copy.deepcopy(imgFrame2)
 
-
-        #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
-        #kernel2 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(7,7))
-
-        #fgmask = fgbg.apply(imgFrame2Copy)
-        #removing shadow
-        #fgmask[fgmask==127]=0
-
-        #Erode  = Open  -> remove noises
-        #Dilate = Close -> close holes in foreground obj
-        #fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
-        #fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel2)
-        #fgmask = cv2.erode(fgmask, kernel3x3, iterations=1)
-        #cv2.imshow('frame',fgmask)
-
         imgFrame1Copy = cv2.cvtColor(imgFrame1Copy, cv2.COLOR_BGR2GRAY)
         imgFrame2Copy = cv2.cvtColor(imgFrame2Copy, cv2.COLOR_BGR2GRAY)
 
 
-        if(debugGaussian):
+        if(debugGaussian and debug_mode):
             cv2.imshow('gaussianBlurBefore-Img1', imgFrame1Copy)
             cv2.imshow('gaussianBlurBefore-Img2', imgFrame2Copy)
 
-        imgFrame1Copy = cv2.GaussianBlur(imgFrame1Copy, (5,5), 0)
-        imgFrame2Copy = cv2.GaussianBlur(imgFrame2Copy, (5,5), 0)
+        imgFrame1Copy = cv2.GaussianBlur(imgFrame1Copy, gaussian_kernel, 0)
+        imgFrame2Copy = cv2.GaussianBlur(imgFrame2Copy, gaussian_kernel, 0)
 
-        if(debugGaussian):
+        if(debugGaussian and debug_mode):
             cv2.imshow('gaussianBlurAfter-Img1', imgFrame1Copy)
             cv2.imshow('gaussianBlurAfter-Img2', imgFrame2Copy)
 
         imgDifference = cv2.absdiff(imgFrame1Copy, imgFrame2Copy)
 
-        if(debugGaussian):
+        if(debugGaussian and debug_mode):
             cv2.imshow('dif-Img1-Img2', imgDifference)
         # ret value is used for Otsu's Binarization if we want to
         # https://docs.opencv.org/3.4.0/d7/d4d/tutorial_py_thresholding.html
-        ret, imgThresh = cv2.threshold(imgDifference, 15, 255.0, cv2.THRESH_BINARY)
+        ret, imgThresh = cv2.threshold(imgDifference, threshold_value, 255.0, cv2.THRESH_BINARY)
 
-        if debugThreshold:
+        if debugThreshold and debug_mode:
             cv2.imshow('imgThresh', imgThresh)
 
         #all the pixels near boundary will be discarded depending upon the size of kernel. erosion removes white noises
-
-        imgThresh = cv2.dilate(imgThresh, kernel5x5, iterations=1)
+        imgThresh = cv2.dilate(imgThresh, kernel_dilate1, iterations=1)
         if debug_dilate:
             cv2.imshow('dilate-dilate1', imgThresh)
-        imgThresh = cv2.erode(imgThresh, kernel3x3, iterations=1)
+        imgThresh = cv2.erode(imgThresh, kernel_erode1, iterations=1)
         if debug_erode:
             cv2.imshow('dilate-erode1', imgThresh)
 
-        imgThresh = cv2.dilate(imgThresh, kernel5x5, iterations=1)
+        imgThresh = cv2.dilate(imgThresh, kernel_dilate2, iterations=1)
         if debug_dilate:
             cv2.imshow('dilate-dilate2', imgThresh)
-        imgThresh = cv2.erode(imgThresh, kernel5x5, iterations=1)
+        imgThresh = cv2.erode(imgThresh, kernel_erode2, iterations=1)
         if debug_erode:
             cv2.imshow('dilate-erode2', imgThresh)
 
@@ -307,10 +318,7 @@ def main():
         #im2, contours, hierarchy = cv2.findContours(imgThreshCopy, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         imgThreshCopy, contours, hierarchy = cv2.findContours(imgThreshCopy, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
 
-        #fgmask, contours2, hierarchy2 = cv2.findContours(fgmask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
         drawAndShowContours(imgThreshCopy, contours, 'imgContours')
-    #    drawAndShowContours(fgmask, contours2, 'imgContours-MOG')
 
         #up here we made all processing image stuff and now we need to work with the info we extrated from the image
 
@@ -319,7 +327,6 @@ def main():
             convexHull = cv2.convexHull(x)
             blob = Blob(convexHull)
             if(blob.isObject()):
-
                 currentBlobs.append(blob)
 
         drawAndShowBlobs(imgThresh, currentBlobs, "imgCurrentBlobs")
@@ -344,26 +351,20 @@ def main():
         drawBlobInfoOnImage(blobs, imgFrame2Copy)
 
         #check if the blob crossed the explained
-        atLeastOneBlobCrossedTheLine = checkIfBlobsCossedTheLine(blobs, horizontalLinePosition, peopleCount, seenPeople)
+        atLeastOneBlobCrossedTheLine = checkIfBlobsCossedTheLine(blobs, line, peopleCount, seenPeople, case)
 
         #if it has cross draw a colorful line
         if atLeastOneBlobCrossedTheLine:
-            #cv2.line(frame, (300, height/2 -50), (width-200, height/2 -50), (255, 0, 255), 2) #yellow line
-            cv2.line(imgFrame2Copy, (point1.x,point1.y), (point2.x,point2.y), (255, 0, 255), 2) #yellow line
+            cv2.line(imgFrame2Copy, (line[0].x,line[0].y), (line[1].x,line[1].y), (255, 0, 255), 2) #yellow line
         else:
-            cv2.line(imgFrame2Copy, (point1.x,point1.y), (point2.x,point2.y), (0, 255, 255), 2)
-
+            cv2.line(imgFrame2Copy, (line[0].x,line[0].y), (line[1].x,line[1].y), (0, 255, 255), 2)
 
         #draw the counter
-
         drawPeopleCounterOnImage(peopleCount, imgFrame2Copy, width, height)
 
         cv2.imshow('imgFrame2Copy', imgFrame2Copy)
 
-        #cv2.waitKey(0) #for debugging purpose
-
         # get ready for next iteration
-
         del currentBlobs[:]
 
         imgFrame1 = copy.deepcopy(imgFrame2)
