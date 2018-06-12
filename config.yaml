@@ -1,6 +1,6 @@
 config:
   debug_mode: True
-  debugGaussian: False
+  debugGaussian: True
   debugThreshold: True
   debugDilateErode: False
   debug_dilate: True
@@ -34,6 +34,7 @@ videos:
     kernel_erode1: 5
     kernel_dilate2: 5
     kernel_erode2: 3
+    source: ""
   video_2:
     id: 2
     max_track_frames: 15
@@ -59,29 +60,30 @@ videos:
     kernel_erode1: 3
     kernel_dilate2: 5
     kernel_erode2: 5
+    source: ""
   video_3:
     id: 3
+    max_track_frames: 25
     case: 1
     linePoint1:
-      x: 0
-      y: 96
+      x: 5
+      y: 220
     linePoint2:
-      x: 319
-      y: 96
-    filepath: videos/SYS_Memorial_Hal_normal_320x240.avi
+      x: 350
+      y: 220
+    filepath: videos/main-st-sag-habor-ny-20180402.mp4
     blob:
-      area: 400
+      area: 350
       min_aspect_ratio: 0.2
       max_aspect_ratio: 4.2
       width: 30
       height: 30
       diagonal_size: 60.0
       contour_area_by_area: 0.5
-    kernel_erode1: 3x3
-    times_erode1: 1
-    kernel_dilate1: 5x5
-    times_dilate1: 2
-    kernel_erode2: 15x15
-    times_erode1: 1
-    kernel_dilate2: 15x15
-    times_dilate2: 1
+    threshold_value: 20
+    gaussian_kernel: 7
+    kernel_dilate1: 7
+    kernel_erode1: 3
+    kernel_dilate2: 7
+    kernel_erode2: 3
+    source: https://www.youtube.com/watch?v=KVcW9O7eRTQ

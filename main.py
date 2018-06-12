@@ -12,7 +12,7 @@ from Blob import Blob
 from Point import Point
 
 #load from config.yaml based on id
-video_id = 1
+video_id = 3
 
 #load from config.yaml
 debug_mode = None
@@ -56,6 +56,8 @@ def getTuple(numb):
         return (15,15)
     if numb == 9:
         return (9,9)
+    if numb == 7:
+        return (7,7)
 
 def yaml_loader(filepath):
     # Loads a yaml file
@@ -200,11 +202,13 @@ def checkIfBlobsCossedTheLine(blobs, line, peopleCount, seenPeople, case):
     for b in blobs:
         if b.isStillBeingTracked and len(b.centerPositions) >=4 :
             if(case == 1):
-                prevFrameIndex = len(b.centerPositions) - 4
+                prevFrameIndex = len(b.centerPositions) - 3
                 curFrameIndex = len(b.centerPositions) - 1
                 blobMinY = b.centerPositions[prevFrameIndex].y
                 blobMaxY = b.centerPositions[curFrameIndex].y
-                if(blobMinY < line[0].y and blobMaxY >= line[1].y):
+                blobMaxX = b.centerPositions[curFrameIndex].x
+                if(blobMinY < line[0].y and blobMaxY >= line[1].y
+                    and blobMaxX <= line[1].x):
                     if not b.id in seenPeople:
                         seenPeople.add(b.id)
                         if debug_crossed_blobs:
