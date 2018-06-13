@@ -63,27 +63,27 @@ videos:
     source: ""
   video_3:
     id: 3
-    max_track_frames: 25
+    max_track_frames: 18
     case: 1
     linePoint1:
       x: 5
-      y: 220
+      y: 240
     linePoint2:
       x: 350
-      y: 220
+      y: 240
     filepath: videos/main-st-sag-habor-ny-20180402.mp4
     blob:
-      area: 350
+      area: 4000
       min_aspect_ratio: 0.2
-      max_aspect_ratio: 4.2
-      width: 30
-      height: 30
-      diagonal_size: 60.0
+      max_aspect_ratio: 2.2
+      width: 50
+      height: 90
+      diagonal_size: 80.0
       contour_area_by_area: 0.5
-    threshold_value: 20
-    gaussian_kernel: 7
-    kernel_dilate1: 7
-    kernel_erode1: 3
-    kernel_dilate2: 7
+    threshold_value: 15
+    gaussian_kernel: 9
+    kernel_dilate1: 9
+    kernel_erode1: 5
+    kernel_dilate2: 5
     kernel_erode2: 3
     source: https://www.youtube.com/watch?v=KVcW9O7eRTQ

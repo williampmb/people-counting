@@ -12,7 +12,7 @@ from Blob import Blob
 from Point import Point
 
 #load from config.yaml based on id
-video_id = 3
+video_id = 2
 
 #load from config.yaml
 debug_mode = None
@@ -134,7 +134,7 @@ def matchCurrentFrameBlobsToExistingBlobs(blobs, currentBlobs):
                     indexOfLeastDistance = i
 
         #best result with 0.7
-        if leastDistance < curBlob.diagonalSize*0.80 :
+        if leastDistance < curBlob.diagonalSize*0.50 :
             addBlobToExistingBlobs(curBlob, blobs, indexOfLeastDistance)
         else:
             addNewBlob(curBlob, blobs)
@@ -264,6 +264,12 @@ def main():
     peopleCount = [0]
     seenPeople = set()
 
+    howManyFramesSkip = 1000
+    while(video.isOpened() and atFrame < howManyFramesSkip):
+        _, imgFrame1 = video.read()
+        _, imgFrame2 = video.read()
+        atFrame += 2
+
     #While the video is open and we don't press q key read, process and show a frame
     while(video.isOpened()):
 
@@ -300,19 +306,20 @@ def main():
             cv2.imshow('imgThresh', imgThresh)
 
         #all the pixels near boundary will be discarded depending upon the size of kernel. erosion removes white noises
-        imgThresh = cv2.dilate(imgThresh, kernel_dilate1, iterations=1)
+        imgThresh = cv2.dilate(imgThresh, kernel_dilate1, iterations=2)
         if debug_dilate:
             cv2.imshow('dilate-dilate1', imgThresh)
         imgThresh = cv2.erode(imgThresh, kernel_erode1, iterations=1)
         if debug_erode:
             cv2.imshow('dilate-erode1', imgThresh)
 
-        imgThresh = cv2.dilate(imgThresh, kernel_dilate2, iterations=1)
-        if debug_dilate:
-            cv2.imshow('dilate-dilate2', imgThresh)
         imgThresh = cv2.erode(imgThresh, kernel_erode2, iterations=1)
         if debug_erode:
             cv2.imshow('dilate-erode2', imgThresh)
+        imgThresh = cv2.dilate(imgThresh, kernel_dilate2, iterations=1)
+        if debug_dilate:
+            cv2.imshow('dilate-dilate2', imgThresh)
+
 
         imgThreshCopy = copy.deepcopy(imgThresh)
 
@@ -373,13 +380,23 @@ def main():
 
         imgFrame1 = copy.deepcopy(imgFrame2)
 
-        if( (video.get(cv2.CAP_PROP_POS_FRAMES) +1 ) < ( video.get(cv2.CAP_PROP_FRAME_COUNT))):
+        # for some videos it is better to skip some frames to have more diff
+        # between the images. Otherwise it won't have much difference and it will
+        # not know what it is different from previous frame
+        if( (video.get(cv2.CAP_PROP_POS_FRAMES) +2 ) < ( video.get(cv2.CAP_PROP_FRAME_COUNT))):
+            _, imgFrame2 = video.read()
             _, imgFrame2 = video.read()
         else:
             print("end of video")
             break;
 
-        atFrame +=1
+            if( (video.get(cv2.CAP_PROP_POS_FRAMES) +1 ) < ( video.get(cv2.CAP_PROP_FRAME_COUNT))):
+                _, imgFrame2 = video.read()
+            else:
+                print("end of video")
+                break;
+
+        atFrame +=2
         #print("frame: " +  str(count))
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
